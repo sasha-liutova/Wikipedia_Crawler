@@ -1,5 +1,6 @@
 
 import scrapy
+from scrapy.selector import Selector
 
 
 class QuotesSpider(scrapy.Spider):
@@ -11,17 +12,17 @@ class QuotesSpider(scrapy.Spider):
                        'DEPTH_LIMIT':5}
 
     def parse(self, response):
-        # for quote in response.css('div.quote'):
-        #     yield {
-        #         'text': quote.css('span.text::text').extract_first(),
-        #         'author': quote.css('small.author::text').extract_first(),
-        #         'tags': quote.css('div.tags a.tag::text').extract(),
-        #     }
+        # h1 = response.selector.xpath('//h1.firstHeading/text()').extract()
+        h1 = response.css('h1.firstHeading::text').extract()[0]
+        print('H1: ', h1)
+        for quote in response.css('div.bodyContent'):
+            yield {
+                'text': quote.css('span.text::text').extract_first(),
+            }
 
         next_pages_raw = response.selector.xpath('//*/a[2]/@href').extract()
         next_pages = [page for page in next_pages_raw if page.startswith('/wiki/')]
         for next_page in next_pages:
             if next_page is not None:
-                print('NEXT PAGE: ', next_page)
                 next_page = response.urljoin(next_page)
                 yield scrapy.Request(next_page, callback=self.parse)
