@@ -12,13 +12,13 @@ class QuotesSpider(scrapy.Spider):
                        'DEPTH_LIMIT':5}
 
     def parse(self, response):
-        # h1 = response.selector.xpath('//h1.firstHeading/text()').extract()
         h1 = response.css('h1.firstHeading::text').extract()[0]
-        print('H1: ', h1)
-        for quote in response.css('div.bodyContent'):
-            yield {
-                'text': quote.css('span.text::text').extract_first(),
-            }
+        # content = response.css('#bodyContent').extract()
+        first_paragraph = response.css('p').extract_first()
+        yield {
+            'title': h1,
+            'first_paragraph': first_paragraph,
+        }
 
         next_pages_raw = response.selector.xpath('//*/a[2]/@href').extract()
         next_pages = [page for page in next_pages_raw if page.startswith('/wiki/')]
